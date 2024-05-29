@@ -8,10 +8,27 @@ use ratatui::{
     widgets::{Block, Borders, Cell, Row as TableRow, Table, TableState},
     Terminal,
 };
-use sqlx::{sqlite::SqlitePool, Column};
+use sqlx::{
+    sqlite::{SqlitePool, SqliteRow},
+    Column, Pool,
+};
 use sqlx::{Row, Sqlite};
 use std::{error::Error, io, thread, time::Duration};
 use tokio;
+
+struct AppState {
+    pool: Option<Pool<Sqlite>>,
+    results: Option<Vec<SqliteRow>>,
+}
+
+impl Default for AppState {
+    fn default() -> Self {
+        Self {
+            pool: None,
+            results: None,
+        }
+    }
+}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -22,16 +39,26 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
 
-    let database_url = "sqlite::memory:"; // Use your database URL
-    let pool = SqlitePool::connect(database_url).await?;
+    let mut app = AppState::default();
 
-    init_database(&pool).await?;
+    let database_url = "sqlite::memory:"; // Use your database URL
+    app.pool = Some(SqlitePool::connect(database_url).await?);
+
+    match app.pool {
+        None => return Err("Failed to connect to database".into()),
+        Some(ref pool) => {
+            init_database(pool).await?;
+        }
+    };
 
     // Example dynamic query
     let query = "SELECT id, name, email FROM users"; // This could be provided at runtime
 
     // Fetch the results
-    let rows = sqlx::query(query).fetch_all(&pool).await?;
+    let rows = match app.pool {
+        None => return Err("Failed to connect to database".into()),
+        Some(ref pool) => sqlx::query(query).fetch_all(pool).await?,
+    };
 
     // Prepare the data for the table
     let headers = rows
