@@ -5,11 +5,11 @@ use crossterm::{
 };
 use ratatui::{
     backend::CrosstermBackend,
-    widgets::{Block, Borders, Row as TableRow, Table, TableState, Cell},
+    widgets::{Block, Borders, Cell, Row as TableRow, Table, TableState},
     Terminal,
 };
-use sqlx::Row;
-use sqlx::{sqlite::SqlitePool, Column, Execute};
+use sqlx::{sqlite::SqlitePool, Column};
+use sqlx::{Row, Sqlite};
 use std::{error::Error, io, thread, time::Duration};
 use tokio;
 
@@ -25,30 +25,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let database_url = "sqlite::memory:"; // Use your database URL
     let pool = SqlitePool::connect(database_url).await?;
 
-    let init_query = "
-        CREATE TABLE users (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE
-        );
-        INSERT INTO users (name, email) VALUES ('Alice', 'temp@email.com')
-        ";
-
-    sqlx::query(init_query).execute(&pool).await?;
+    init_database(&pool).await?;
 
     // Example dynamic query
     let query = "SELECT id, name, email FROM users"; // This could be provided at runtime
 
     // Fetch the results
     let rows = sqlx::query(query).fetch_all(&pool).await?;
-    let columns = rows
-        .first()
-        .map(|row| {
-            (0..row.len())
-                .map(|i| row.column(i).name().to_string())
-                .collect::<Vec<_>>()
-        })
-        .unwrap_or_default();
 
     // Prepare the data for the table
     let headers = rows
@@ -71,15 +54,25 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Create table state
     let mut table_state = TableState::default();
-    
-    let rows = data.iter().map(|row| {
-        TableRow::new(row.iter().map(|cell| Cell::from(cell.as_str())).collect::<Vec<_>>())
-    }).collect::<Vec<_>>();
-    
+
+    let rows = data
+        .iter()
+        .map(|row| {
+            TableRow::new(
+                row.iter()
+                    .map(|cell| Cell::from(cell.as_str()))
+                    .collect::<Vec<_>>(),
+            )
+        })
+        .collect::<Vec<_>>();
+
     let table = Table::new(rows, [15, 20, 30])
-        .header(
-            TableRow::new(headers.iter().map(|h| Cell::from(h.as_str())).collect::<Vec<_>>())
-        )
+        .header(TableRow::new(
+            headers
+                .iter()
+                .map(|h| Cell::from(h.as_str()))
+                .collect::<Vec<_>>(),
+        ))
         .block(Block::default().title("SQL Results").borders(Borders::ALL))
         .highlight_symbol(">>");
 
@@ -105,6 +98,21 @@ async fn main() -> Result<(), Box<dyn Error>> {
         DisableMouseCapture
     )?;
     terminal.show_cursor()?;
+
+    Ok(())
+}
+
+async fn init_database(pool: &sqlx::Pool<Sqlite>) -> Result<(), Box<dyn Error>> {
+    let init_query = "
+        CREATE TABLE users (
+            id INTEGER PRIMARY KEY,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE
+        );
+        INSERT INTO users (name, email) VALUES ('Alice', 'temp@email.com')
+        ";
+
+    sqlx::query(init_query).execute(pool).await?;
 
     Ok(())
 }
