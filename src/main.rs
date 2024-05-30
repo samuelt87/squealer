@@ -55,29 +55,35 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let query = "SELECT id, name, email FROM users"; // This could be provided at runtime
 
     // Fetch the results
-    let rows = match app.pool {
-        None => return Err("Failed to connect to database".into()),
-        Some(ref pool) => sqlx::query(query).fetch_all(pool).await?,
+    app.results = match app.pool {
+        None => None,
+        Some(ref pool) => Some(sqlx::query(query).fetch_all(pool).await?),
     };
 
     // Prepare the data for the table
-    let headers = rows
-        .first()
-        .map(|row| {
-            row.columns()
+    let (headers, data) = match app.results {
+        None => return Err("No results to display".into()),
+        Some(ref rows) => {
+            let headers = rows
+                .first()
+                .map(|row| {
+                    row.columns()
+                        .iter()
+                        .map(|col| col.name().to_string())
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+            let data = rows
                 .iter()
-                .map(|col| col.name().to_string())
-                .collect::<Vec<_>>()
-        })
-        .unwrap_or_default();
-    let data = rows
-        .iter()
-        .map(|row| {
-            (0..row.len())
-                .map(|i| row.try_get::<&str, _>(i).unwrap_or_default().to_string())
-                .collect::<Vec<_>>()
-        })
-        .collect::<Vec<_>>();
+                .map(|row| {
+                    (0..row.len())
+                        .map(|i| row.try_get::<&str, _>(i).unwrap_or_default().to_string())
+                        .collect::<Vec<_>>()
+                })
+                .collect::<Vec<_>>();
+            (headers, data)
+        }
+    };
 
     // Create table state
     let mut table_state = TableState::default();
