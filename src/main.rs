@@ -64,12 +64,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     // Example dynamic query
     let query = "SELECT id, name, email FROM users"; // This could be provided at runtime
+    app.query_input.insert_str(query);
 
     // Fetch the results
-    app.results = match app.pool {
-        None => None,
-        Some(ref pool) => Some(sqlx::query(query).fetch_all(pool).await?),
-    };
+    execute_query(&mut app).await?;
 
     // Create table state
     let mut table_state = TableState::default();
