@@ -1,4 +1,5 @@
 mod database;
+mod event_handler;
 mod terminal;
 mod ui;
 
@@ -8,6 +9,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use database::{execute_query, init_database};
+use event_handler::handle_event;
 use ratatui::{
     backend::{Backend, CrosstermBackend},
     prelude::*,
@@ -79,16 +81,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         });
 
         // Handle user input
-        if let Event::Key(key) = event::read()? {
-            match key.code {
-                KeyCode::Tab => {
-                    execute_query(&mut app).await?;
-                }
-                KeyCode::Esc => break,
-                _ => {
-                    app.query_input.input(key);
-                }
-            }
+        if handle_event(&mut app).await? {
+            break;
         }
     }
 
