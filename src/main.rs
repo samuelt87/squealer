@@ -1,5 +1,6 @@
 mod database;
 mod terminal;
+mod ui;
 
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent},
@@ -21,6 +22,7 @@ use sqlx::{Row, Sqlite};
 use std::{error::Error, io, thread, time::Duration};
 use terminal::{restore_terminal, setup_terminal};
 use tokio;
+use ui::render_ui;
 
 use tui_textarea::{Input, TextArea};
 
@@ -73,20 +75,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     loop {
         // Render the input field and table
         terminal.draw(|f| {
-            let (headers, data) = extract_row_data(&app).unwrap();
-            let size = f.size();
-            let chunks = Layout::default()
-                .direction(Direction::Vertical)
-                .margin(1)
-                .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
-                .split(size);
-
-            // Render input field
-            f.render_widget(app.query_input.widget(), chunks[0]);
-
-            // Render table
-            render_table(f, chunks[1], &headers, &data, &mut table_state);
-        })?;
+            render_ui(f, &app, &mut table_state);
+        });
 
         // Handle user input
         if let Event::Key(key) = event::read()? {
@@ -105,59 +95,5 @@ async fn main() -> Result<(), Box<dyn Error>> {
     restore_terminal(&mut terminal)
 }
 
-/// Execute a query from the input field and update the results.
-fn render_table(
-    frame: &mut Frame,
-    area: Rect,
-    headers: &[String],
-    data: &[Vec<String>],
-    state: &mut TableState,
-) {
-    let rows = data.iter().map(|row| {
-        TableRow::new(
-            row.iter()
-                .map(|cell| Cell::from(cell.as_str()))
-                .collect::<Vec<_>>(),
-        )
-    });
-
-    let table = Table::new(rows, [15, 20, 30])
-        .header(TableRow::new(
-            headers
-                .iter()
-                .map(|h| Cell::from(h.as_str()))
-                .collect::<Vec<_>>(),
-        ))
-        .block(Block::default().title("SQL Results").borders(Borders::ALL))
-        .highlight_symbol(">>");
-
-    frame.render_stateful_widget(table, area, state);
-}
-
-fn extract_row_data(app: &AppState) -> Result<(Vec<String>, Vec<Vec<String>>), Box<dyn Error>> {
-    match app.results {
-        None => return Err("No results to display".into()),
-        Some(ref rows) => {
-            let headers = rows
-                .first()
-                .map(|row| {
-                    row.columns()
-                        .iter()
-                        .map(|col| col.name().to_string())
-                        .collect::<Vec<_>>()
-                })
-                .unwrap_or_default();
-            let data = rows
-                .iter()
-                .map(|row| {
-                    (0..row.len())
-                        .map(|i| row.try_get::<&str, _>(i).unwrap_or_default().to_string())
-                        .collect::<Vec<_>>()
-                })
-                .collect::<Vec<_>>();
-            Ok((headers, data))
-        }
-    }
-}
 // TODO
 // - Set up the chinook database for testing
