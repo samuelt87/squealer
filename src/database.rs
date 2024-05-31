@@ -1,9 +1,5 @@
-use sqlx::{
-    sqlite::{SqlitePool, SqliteRow},
-    Column, Pool,
-};
-use sqlx::{Row, Sqlite};
-use std::{error::Error, io, thread, time::Duration};
+use sqlx::Sqlite;
+use std::error::Error;
 
 use crate::AppState;
 

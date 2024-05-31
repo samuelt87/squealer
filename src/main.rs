@@ -3,30 +3,20 @@ mod event_handler;
 mod terminal;
 mod ui;
 
-use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent},
-    execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
-};
 use database::{execute_query, init_database};
 use event_handler::handle_event;
-use ratatui::{
-    backend::{Backend, CrosstermBackend},
-    prelude::*,
-    widgets::{Block, Borders, Cell, Row as TableRow, Table, TableState},
-    Frame, Terminal,
-};
+use ratatui::widgets::{Block, Borders, TableState};
+use sqlx::Sqlite;
 use sqlx::{
     sqlite::{SqlitePool, SqliteRow},
-    Column, Pool,
+    Pool,
 };
-use sqlx::{Row, Sqlite};
-use std::{error::Error, io, thread, time::Duration};
+use std::error::Error;
 use terminal::{restore_terminal, setup_terminal};
 use tokio;
 use ui::render_ui;
 
-use tui_textarea::{Input, TextArea};
+use tui_textarea::TextArea;
 
 struct AppState<'a> {
     pool: Option<Pool<Sqlite>>,
@@ -75,8 +65,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     loop {
         // Render the input field and table
         terminal.draw(|f| {
-            render_ui(f, &app, &mut table_state);
-        });
+            render_ui(f, &app, &mut table_state).unwrap();
+        })?;
 
         // Handle user input
         if handle_event(&mut app).await? {

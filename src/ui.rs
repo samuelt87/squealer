@@ -1,13 +1,9 @@
 use crate::AppState;
-use ratatui::backend::Backend;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::widgets::{Block, Borders, Cell, Row as TableRow, Table, TableState};
-use ratatui::{Frame, Terminal};
-use sqlx::{
-    sqlite::{SqlitePool, SqliteRow},
-    Column, Pool,
-};
-use sqlx::{Row, Sqlite};
+use ratatui::Frame;
+use sqlx::Column;
+use sqlx::Row;
 use std::error::Error;
 
 pub fn render_ui(
