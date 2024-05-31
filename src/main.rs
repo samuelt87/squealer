@@ -1,3 +1,5 @@
+mod terminal;
+
 use crossterm::{
     event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEvent},
     execute,
@@ -14,6 +16,7 @@ use sqlx::{
     Column, Pool,
 };
 use sqlx::{Row, Sqlite};
+use terminal::{restore_terminal, setup_terminal};
 use std::{error::Error, io, thread, time::Duration};
 use tokio;
 
@@ -39,12 +42,7 @@ impl Default for AppState<'static> {
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    // setup terminal
-    enable_raw_mode()?;
-    let mut stdout = io::stdout();
-    execute!(stdout, EnterAlternateScreen, EnableMouseCapture)?;
-    let backend = CrosstermBackend::new(stdout);
-    let mut terminal = Terminal::new(backend)?;
+    let mut terminal = setup_terminal()?;
 
     let mut app = AppState::default();
 
@@ -102,16 +100,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         }
     }
 
-    // restore terminal
-    disable_raw_mode()?;
-    execute!(
-        terminal.backend_mut(),
-        LeaveAlternateScreen,
-        DisableMouseCapture
-    )?;
-    terminal.show_cursor()?;
-
-    Ok(())
+    restore_terminal(&mut terminal)
 }
 
 async fn init_database(pool: &sqlx::Pool<Sqlite>) -> Result<(), Box<dyn Error>> {
