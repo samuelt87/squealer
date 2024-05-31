@@ -1,3 +1,4 @@
+mod database;
 mod terminal;
 
 use crossterm::{
@@ -5,6 +6,7 @@ use crossterm::{
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
+use database::{execute_query, init_database};
 use ratatui::{
     backend::{Backend, CrosstermBackend},
     prelude::*,
@@ -16,8 +18,8 @@ use sqlx::{
     Column, Pool,
 };
 use sqlx::{Row, Sqlite};
-use terminal::{restore_terminal, setup_terminal};
 use std::{error::Error, io, thread, time::Duration};
+use terminal::{restore_terminal, setup_terminal};
 use tokio;
 
 use tui_textarea::{Input, TextArea};
@@ -103,30 +105,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     restore_terminal(&mut terminal)
 }
 
-async fn init_database(pool: &sqlx::Pool<Sqlite>) -> Result<(), Box<dyn Error>> {
-    let init_query = "
-        CREATE TABLE users (
-            id INTEGER PRIMARY KEY,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE
-        );
-        INSERT INTO users (name, email) VALUES ('Alice', 'temp@email.com')
-        ";
-
-    sqlx::query(init_query).execute(pool).await?;
-
-    Ok(())
-}
-
 /// Execute a query from the input field and update the results.
-async fn execute_query(app: &mut AppState<'static>) -> Result<(), Box<dyn Error>> {
-    let query = app.query_input.lines().join(" ");
-    if let Some(ref pool) = app.pool {
-        app.results = Some(sqlx::query(&query).fetch_all(pool).await?);
-    }
-    Ok(())
-}
-
 fn render_table(
     frame: &mut Frame,
     area: Rect,
