@@ -2,36 +2,16 @@ mod database;
 mod event_handler;
 mod terminal;
 mod ui;
+mod app;
 
+use app::AppState;
 use database::{connect_to_database, execute_query, setup_test_database};
 use event_handler::handle_event;
-use ratatui::widgets::{Block, Borders, TableState};
-use sqlx::Sqlite;
-use sqlx::{sqlite::SqliteRow, Pool};
+use ratatui::widgets::TableState;
 use std::error::Error;
 use terminal::{restore_terminal, setup_terminal};
 use tokio;
 use ui::render_ui;
-
-use tui_textarea::TextArea;
-
-struct AppState<'a> {
-    pool: Option<Pool<Sqlite>>,
-    results: Option<Vec<SqliteRow>>,
-    query_input: TextArea<'a>,
-}
-
-impl Default for AppState<'static> {
-    fn default() -> Self {
-        let mut query_input = TextArea::default();
-        query_input.set_block(Block::default().borders(Borders::ALL).title("Query Input"));
-        Self {
-            pool: None,
-            results: None,
-            query_input,
-        }
-    }
-}
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
