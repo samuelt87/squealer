@@ -26,10 +26,10 @@ pub async fn execute_query(app: &mut AppState<'static>) -> Result<(), Box<dyn Er
     Ok(())
 }
 
-pub async fn connect_to_database(app: &mut AppState<'static>) {
+pub async fn connect_to_database() -> Option<sqlx::Pool<Sqlite>> {
     let database_url = "sqlite::memory:"; // Use your database URL
-    app.pool = match sqlx::SqlitePool::connect(database_url).await {
+    match sqlx::SqlitePool::connect(database_url).await {
         Ok(pool) => Some(pool),
         Err(_) => None,
-    };
+    }
 }

@@ -1,8 +1,8 @@
+mod app;
 mod database;
 mod event_handler;
 mod terminal;
 mod ui;
-mod app;
 
 use app::AppState;
 use database::{connect_to_database, execute_query, setup_test_database};
@@ -17,9 +17,7 @@ use ui::render_ui;
 async fn main() -> Result<(), Box<dyn Error>> {
     let mut terminal = setup_terminal()?;
 
-    let mut app = AppState::default();
-
-    connect_to_database(&mut app).await;
+    let mut app = AppState::new("SELECT id, name, email FROM users", connect_to_database).await;
 
     match app.pool {
         None => return Err("Failed to connect to database".into()),
@@ -27,10 +25,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
             setup_test_database(pool).await?;
         }
     };
-
-    // Example dynamic query
-    let query = "SELECT id, name, email FROM users"; // This could be provided at runtime
-    app.query_input.insert_str(query);
 
     // Fetch the results
     execute_query(&mut app).await?;
