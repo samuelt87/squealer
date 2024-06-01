@@ -3,14 +3,11 @@ mod event_handler;
 mod terminal;
 mod ui;
 
-use database::{execute_query, init_database};
+use database::{connect_to_database, execute_query, setup_test_database};
 use event_handler::handle_event;
 use ratatui::widgets::{Block, Borders, TableState};
 use sqlx::Sqlite;
-use sqlx::{
-    sqlite::{SqlitePool, SqliteRow},
-    Pool,
-};
+use sqlx::{sqlite::SqliteRow, Pool};
 use std::error::Error;
 use terminal::{restore_terminal, setup_terminal};
 use tokio;
@@ -42,13 +39,12 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let mut app = AppState::default();
 
-    let database_url = "sqlite::memory:"; // Use your database URL
-    app.pool = Some(SqlitePool::connect(database_url).await?);
+    connect_to_database(&mut app).await;
 
     match app.pool {
         None => return Err("Failed to connect to database".into()),
         Some(ref pool) => {
-            init_database(pool).await?;
+            setup_test_database(pool).await?;
         }
     };
 
@@ -76,6 +72,3 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     restore_terminal(&mut terminal)
 }
-
-// TODO
-// - Set up the chinook database for testing
