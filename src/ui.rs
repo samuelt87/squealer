@@ -16,7 +16,7 @@ pub fn render_ui(
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
-        .constraints([Constraint::Length(3), Constraint::Min(1)].as_ref())
+        .constraints([Constraint::Length(12), Constraint::Min(5)].as_ref())
         .split(size);
 
     // Render input field
