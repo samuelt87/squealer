@@ -18,10 +18,14 @@ pub async fn setup_test_database(pool: &sqlx::Pool<Sqlite>) {
 
 pub async fn execute_query(app: &mut App<'static>) -> Result<(), Box<dyn Error>> {
     let query = app.query_input.lines().join(" ");
-    if let Some(ref pool) = app.pool {
-        app.results = Some(sqlx::query(&query).fetch_all(pool).await?);
+    // if let Some(ref pool) = app.pool {
+    match &app.pool {
+        Some(pool) => {
+            app.results = Some(sqlx::query(&query).fetch_all(pool).await?);
+            Ok(())
+        }
+        None => Err("No database connection".into()),
     }
-    Ok(())
 }
 
 pub async fn connect_to_database(config: Config) -> Option<sqlx::Pool<Sqlite>> {
