@@ -1,4 +1,4 @@
-use crate::AppState;
+use crate::App;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::widgets::{Block, Borders, Cell, Row as TableRow, Table, TableState};
 use ratatui::Frame;
@@ -8,7 +8,7 @@ use std::error::Error;
 
 pub fn render_ui(
     f: &mut Frame,
-    app: &AppState,
+    app: &App,
     table_state: &mut TableState,
 ) -> Result<(), Box<dyn Error>> {
     let (headers, data) = extract_row_data(&app).unwrap();
@@ -56,7 +56,7 @@ fn render_table(
     frame.render_stateful_widget(table, area, state);
 }
 
-fn extract_row_data(app: &AppState) -> Result<(Vec<String>, Vec<Vec<String>>), Box<dyn Error>> {
+fn extract_row_data(app: &App) -> Result<(Vec<String>, Vec<Vec<String>>), Box<dyn Error>> {
     match app.results {
         None => return Err("No results to display".into()),
         Some(ref rows) => {

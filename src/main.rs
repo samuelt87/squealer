@@ -1,11 +1,12 @@
 mod app;
+mod config;
 mod database;
 mod event_handler;
 mod terminal;
 mod ui;
 
-use app::AppState;
-use database::{connect_to_database, execute_query, setup_test_database};
+use app::App;
+use database::{connect_to_database, execute_query};
 use event_handler::handle_event;
 use ratatui::widgets::TableState;
 use std::error::Error;
@@ -15,16 +16,7 @@ use ui::render_ui;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
-    let mut terminal = setup_terminal()?;
-
-    let mut app = AppState::new("SELECT id, name, email FROM users", connect_to_database).await;
-
-    match app.pool {
-        None => return Err("Failed to connect to database".into()),
-        Some(ref pool) => {
-            setup_test_database(pool).await?;
-        }
-    };
+    let mut app = App::new("SELECT id, name, email FROM users", connect_to_database).await;
 
     // Fetch the results
     execute_query(&mut app).await?;
@@ -32,6 +24,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     // Create table state
     let mut table_state = TableState::default();
 
+    let mut terminal = setup_terminal()?;
     loop {
         // Render the input field and table
         terminal.draw(|f| {

@@ -1,9 +1,9 @@
 use sqlx::Sqlite;
 use std::error::Error;
 
-use crate::AppState;
+use crate::{config::Config, App};
 
-pub async fn setup_test_database(pool: &sqlx::Pool<Sqlite>) -> Result<(), Box<dyn Error>> {
+pub async fn setup_test_database(pool: &sqlx::Pool<Sqlite>) {
     let init_query = "
         CREATE TABLE users (
             id INTEGER PRIMARY KEY,
@@ -13,12 +13,10 @@ pub async fn setup_test_database(pool: &sqlx::Pool<Sqlite>) -> Result<(), Box<dy
         INSERT INTO users (name, email) VALUES ('Alice', 'temp@email.com')
         ";
 
-    sqlx::query(init_query).execute(pool).await?;
-
-    Ok(())
+    let _ = sqlx::query(init_query).execute(pool).await;
 }
 
-pub async fn execute_query(app: &mut AppState<'static>) -> Result<(), Box<dyn Error>> {
+pub async fn execute_query(app: &mut App<'static>) -> Result<(), Box<dyn Error>> {
     let query = app.query_input.lines().join(" ");
     if let Some(ref pool) = app.pool {
         app.results = Some(sqlx::query(&query).fetch_all(pool).await?);
@@ -26,10 +24,20 @@ pub async fn execute_query(app: &mut AppState<'static>) -> Result<(), Box<dyn Er
     Ok(())
 }
 
-pub async fn connect_to_database() -> Option<sqlx::Pool<Sqlite>> {
-    let database_url = "sqlite::memory:"; // Use your database URL
-    match sqlx::SqlitePool::connect(database_url).await {
-        Ok(pool) => Some(pool),
-        Err(_) => None,
+pub async fn connect_to_database(config: Config) -> Option<sqlx::Pool<Sqlite>> {
+    match config.db_file {
+        Some(file) => {
+            match sqlx::SqlitePool::connect(format!("sqlite://{}", file).as_str()).await {
+                Ok(pool) => Some(pool),
+                Err(_) => None,
+            }
+        }
+        None => match sqlx::SqlitePool::connect("sqlite::memory:").await {
+            Ok(pool) => {
+                setup_test_database(&pool).await;
+                Some(pool)
+            }
+            Err(_) => None,
+        },
     }
 }
