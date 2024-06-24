@@ -41,6 +41,16 @@ impl Results {
     }
 }
 
+impl<T> App<T> {
+    pub fn cancel(self) -> App<home> {
+        App {
+            mode: home,
+            connections: self.connections,
+            results: self.results,
+        }
+    }
+}
+
 impl App<home> {
     async fn new(config: Config) -> Self {
         App {
@@ -91,52 +101,12 @@ impl App<home> {
     }
 }
 
-impl App<edit_query> {
-    fn cancel(self) -> App<home> {
-        App {
-            mode: home,
-            connections: self.connections,
-            results: self.results,
-        }
-    }
-}
+impl App<edit_query> {}
 
-impl App<sqlite_db_browser> {
-    fn cancel(self) -> App<home> {
-        App {
-            mode: home,
-            connections: self.connections,
-            results: self.results,
-        }
-    }
-}
+impl App<sqlite_db_browser> {}
 
-impl App<explore_results> {
-    fn cancel(self) -> App<home> {
-        App {
-            mode: home,
-            connections: self.connections,
-            results: self.results,
-        }
-    }
-}
+impl App<explore_results> {}
 
-impl App<explore_connection> {
-    fn cancel(self) -> App<home> {
-        App {
-            mode: home,
-            connections: self.connections,
-            results: self.results,
-        }
-    }
-}
+impl App<explore_connection> {}
 
-impl App<config_editor> {
-    fn cancel(self) -> App<home> {
-        App {
-            mode: home,
-            connections: self.connections,
-            results: self.results,
-        }
-    }
-}
+impl App<config_editor> {}
