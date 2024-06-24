@@ -6,13 +6,13 @@ use crate::database::*;
 
 // Modes
 
-struct home;
-struct edit_query;
-struct sqlite_db_browser;
-struct explore_results;
-struct save_results;
-struct explore_connection;
-struct config_editor;
+struct Home;
+struct EditQuery;
+struct BrowseSqliteDBFiles;
+struct ExploreResults;
+struct SaveResults;
+struct ExploreConnection;
+struct ConfigEditor;
 
 pub struct App<Mode> {
     mode: Mode,
@@ -42,71 +42,71 @@ impl Results {
 }
 
 impl<T> App<T> {
-    pub fn cancel(self) -> App<home> {
+    pub fn cancel(self) -> App<Home> {
         App {
-            mode: home,
+            mode: Home,
             connections: self.connections,
             results: self.results,
         }
     }
 }
 
-impl App<home> {
+impl App<Home> {
     pub async fn new(config: Config) -> Self {
         App {
-            mode: home,
+            mode: Home,
             connections: Connections::init_connections(config).await,
             results: Results::new(),
         }
     }
 
-    pub fn edit_query(self) -> App<edit_query> {
+    pub fn edit_query(self) -> App<EditQuery> {
         App {
-            mode: edit_query,
+            mode: EditQuery,
             connections: self.connections,
             results: self.results,
         }
     }
 
-    pub fn open_sqlite_db(self) -> App<sqlite_db_browser> {
+    pub fn open_sqlite_db(self) -> App<BrowseSqliteDBFiles> {
         App {
-            mode: sqlite_db_browser,
+            mode: BrowseSqliteDBFiles,
             connections: self.connections,
             results: self.results,
         }
     }
 
-    pub fn explore_results(self) -> App<explore_results> {
+    pub fn explore_results(self) -> App<ExploreResults> {
         App {
-            mode: explore_results,
+            mode: ExploreResults,
             connections: self.connections,
             results: self.results,
         }
     }
 
-    pub fn explore_connection(self) -> App<explore_connection> {
+    pub fn explore_connection(self) -> App<ExploreConnection> {
         App {
-            mode: explore_connection,
+            mode: ExploreConnection,
             connections: self.connections,
             results: self.results,
         }
     }
 
-    pub fn edit_config(self) -> App<config_editor> {
+    pub fn edit_config(self) -> App<ConfigEditor> {
         App {
-            mode: config_editor,
+            mode: ConfigEditor,
             connections: self.connections,
             results: self.results,
         }
     }
 }
 
-impl App<edit_query> {}
+impl App<EditQuery> {}
 
-impl App<sqlite_db_browser> {}
+impl App<BrowseSqliteDBFiles> {}
 
-impl App<explore_results> {}
+impl App<ExploreResults> {}
 
-impl App<explore_connection> {}
+impl App<ExploreConnection> {}
 
-impl App<config_editor> {}
+impl App<ConfigEditor> {}
