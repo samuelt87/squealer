@@ -52,7 +52,7 @@ impl<T> App<T> {
 }
 
 impl App<home> {
-    async fn new(config: Config) -> Self {
+    pub async fn new(config: Config) -> Self {
         App {
             mode: home,
             connections: Connections::init_connections(config).await,
@@ -60,7 +60,7 @@ impl App<home> {
         }
     }
 
-    fn edit_query(self) -> App<edit_query> {
+    pub fn edit_query(self) -> App<edit_query> {
         App {
             mode: edit_query,
             connections: self.connections,
@@ -68,7 +68,7 @@ impl App<home> {
         }
     }
 
-    fn open_sqlite_db(self) -> App<sqlite_db_browser> {
+    pub fn open_sqlite_db(self) -> App<sqlite_db_browser> {
         App {
             mode: sqlite_db_browser,
             connections: self.connections,
@@ -76,7 +76,7 @@ impl App<home> {
         }
     }
 
-    fn explore_results(self) -> App<explore_results> {
+    pub fn explore_results(self) -> App<explore_results> {
         App {
             mode: explore_results,
             connections: self.connections,
@@ -84,7 +84,7 @@ impl App<home> {
         }
     }
 
-    fn explore_connection(self) -> App<explore_connection> {
+    pub fn explore_connection(self) -> App<explore_connection> {
         App {
             mode: explore_connection,
             connections: self.connections,
@@ -92,7 +92,7 @@ impl App<home> {
         }
     }
 
-    fn edit_config(self) -> App<config_editor> {
+    pub fn edit_config(self) -> App<config_editor> {
         App {
             mode: config_editor,
             connections: self.connections,
