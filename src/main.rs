@@ -2,6 +2,7 @@ mod app;
 mod config;
 mod database;
 mod event_handler;
+mod model;
 mod terminal;
 mod ui;
 
