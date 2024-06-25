@@ -16,8 +16,8 @@ struct ConfigEditor;
 
 pub struct App<Mode> {
     mode: Mode,
-    pub connections: Connections,
-    pub results: Results,
+    connections: Connections,
+    results: Results,
 }
 
 pub struct Connections {
@@ -28,6 +28,15 @@ impl Connections {
     async fn init_connections(config: Config) -> Self {
         let sqlite_pool = initial_database_conection(config).await;
         Self { sqlite_pool }
+    }
+
+    async fn connect_to_sqlite_db(file: &str) -> Self {
+        let sqlite_pool = connect_to_database_file(file).await;
+        Self { sqlite_pool }
+    }
+
+    fn disconnect(self) -> Self {
+        Self { sqlite_pool: None }
     }
 }
 
@@ -92,13 +101,11 @@ impl App<Home> {
 impl App<EditQuery> {}
 
 impl App<BrowseSqliteDBFiles> {
-    async fn open_sqlite_db(self, file: &str) -> App<Home> {
-        let sqlite_pool = connect_to_database_file(file).await;
+    pub async fn open_sqlite_db(self, file: &str) -> App<Home> {
+        let sqlite_pool = Connections::connect_to_sqlite_db(file).await;
         App {
             mode: Home,
-            connections: Connections {
-                sqlite_pool: sqlite_pool,
-            },
+            connections: sqlite_pool,
             results: self.results,
         }
     }
