@@ -19,9 +19,24 @@ pub struct App<Mode> {
     mode: Mode,
     connections: Connections,
     results: Results,
+    queries: Queries,
 }
 
-pub struct Connections {
+struct Queries {
+    current_query: String,
+    queries: Vec<String>,
+}
+
+impl Default for Queries {
+    fn default() -> Self {
+        Self {
+            current_query: String::new(),
+            queries: Vec::new(),
+        }
+    }
+}
+
+struct Connections {
     sqlite_pool: Option<Pool<Sqlite>>,
 }
 
@@ -41,7 +56,7 @@ impl Connections {
     }
 }
 
-pub enum Results {
+enum Results {
     Some {
         headers: Vec<String>,
         data: Vec<Vec<String>>,
@@ -80,11 +95,7 @@ impl Results {
 
 impl<T> App<T> {
     pub fn cancel(self) -> App<Home> {
-        App {
-            mode: Home,
-            connections: self.connections,
-            results: self.results,
-        }
+        self.copy_app_with_new_mode(Home)
     }
 
     fn copy_app_with_new_mode<NewMode>(self, mode: NewMode) -> App<NewMode> {
@@ -92,6 +103,7 @@ impl<T> App<T> {
             mode,
             connections: self.connections,
             results: self.results,
+            queries: self.queries,
         }
     }
 
@@ -100,6 +112,7 @@ impl<T> App<T> {
             mode: self.mode,
             connections: self.connections,
             results: Results::new(rows),
+            queries: self.queries,
         }
     }
 }
@@ -110,6 +123,7 @@ impl App<Home> {
             mode: Home,
             connections: Connections::init_connections(config).await,
             results: Results::default(),
+            queries: Queries::default(),
         }
     }
 
@@ -143,6 +157,7 @@ impl App<BrowseSqliteDBFiles> {
             mode: Home,
             connections: sqlite_pool,
             results: self.results,
+            queries: self.queries,
         }
     }
 }
