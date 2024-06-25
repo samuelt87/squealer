@@ -49,6 +49,14 @@ impl<T> App<T> {
             results: self.results,
         }
     }
+
+    fn copy_app_with_new_mode<NewMode>(self, mode: NewMode) -> App<NewMode> {
+        App {
+            mode,
+            connections: self.connections,
+            results: self.results,
+        }
+    }
 }
 
 impl App<Home> {
@@ -61,49 +69,40 @@ impl App<Home> {
     }
 
     pub fn edit_query(self) -> App<EditQuery> {
-        App {
-            mode: EditQuery,
-            connections: self.connections,
-            results: self.results,
-        }
+        self.copy_app_with_new_mode(EditQuery)
     }
 
     pub fn open_sqlite_db(self) -> App<BrowseSqliteDBFiles> {
-        App {
-            mode: BrowseSqliteDBFiles,
-            connections: self.connections,
-            results: self.results,
-        }
+        self.copy_app_with_new_mode(BrowseSqliteDBFiles)
     }
 
     pub fn explore_results(self) -> App<ExploreResults> {
-        App {
-            mode: ExploreResults,
-            connections: self.connections,
-            results: self.results,
-        }
+        self.copy_app_with_new_mode(ExploreResults)
     }
 
     pub fn explore_connection(self) -> App<ExploreConnection> {
-        App {
-            mode: ExploreConnection,
-            connections: self.connections,
-            results: self.results,
-        }
+        self.copy_app_with_new_mode(ExploreConnection)
     }
 
     pub fn edit_config(self) -> App<ConfigEditor> {
-        App {
-            mode: ConfigEditor,
-            connections: self.connections,
-            results: self.results,
-        }
+        self.copy_app_with_new_mode(ConfigEditor)
     }
 }
 
 impl App<EditQuery> {}
 
-impl App<BrowseSqliteDBFiles> {}
+impl App<BrowseSqliteDBFiles> {
+    async fn open_sqlite_db(self, file: &str) -> App<Home> {
+        let sqlite_pool = connect_to_database_file(file).await;
+        App {
+            mode: Home,
+            connections: Connections {
+                sqlite_pool: sqlite_pool,
+            },
+            results: self.results,
+        }
+    }
+}
 
 impl App<ExploreResults> {}
 
