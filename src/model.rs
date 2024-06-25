@@ -1,5 +1,6 @@
 use sqlx::Sqlite;
-use sqlx::{sqlite::SqliteRow, Pool};
+use sqlx::{sqlite::SqliteRow, Column, Pool, Row};
+use std::error::Error;
 
 use crate::config::*;
 use crate::database::*;
@@ -40,13 +41,40 @@ impl Connections {
     }
 }
 
-pub struct Results {
-    results: Option<Vec<SqliteRow>>,
+pub enum Results {
+    Some {
+        headers: Vec<String>,
+        data: Vec<Vec<String>>,
+    },
+    None,
+}
+
+impl Default for Results {
+    fn default() -> Self {
+        Self::None
+    }
 }
 
 impl Results {
-    fn new() -> Self {
-        Self { results: None }
+    fn new(rows: Vec<SqliteRow>) -> Self {
+        let headers = rows
+            .first()
+            .map(|row| {
+                row.columns()
+                    .iter()
+                    .map(|col| col.name().to_string())
+                    .collect::<Vec<_>>()
+            })
+            .unwrap_or_default();
+        let data = rows
+            .iter()
+            .map(|row| {
+                (0..row.len())
+                    .map(|i| row.try_get::<&str, _>(i).unwrap_or_default().to_string())
+                    .collect::<Vec<_>>()
+            })
+            .collect::<Vec<_>>();
+        Results::Some { headers, data }
     }
 }
 
@@ -66,6 +94,14 @@ impl<T> App<T> {
             results: self.results,
         }
     }
+
+    pub fn add_results(self, rows: Vec<SqliteRow>) -> App<T> {
+        App {
+            mode: self.mode,
+            connections: self.connections,
+            results: Results::new(rows),
+        }
+    }
 }
 
 impl App<Home> {
@@ -73,7 +109,7 @@ impl App<Home> {
         App {
             mode: Home,
             connections: Connections::init_connections(config).await,
-            results: Results::new(),
+            results: Results::default(),
         }
     }
 
