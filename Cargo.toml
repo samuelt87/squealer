@@ -2,14 +2,20 @@
 name = "squealer"
 version = "0.1.0"
 edition = "2021"
+authors = ["Samuel Thompson <samuelt87@pm.me>"]
+description = "A Terminal UI database client"
+repository = "https://github.com/samuelt87/squealer.git"
+homepage = "https://github.com/samuelt87/squealer"
+license = "MIT"
+license-file = "LICENSE"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = {version="4.5.4", features=["derive"]}
+clap = { version = "4.5.4", features = ["derive"] }
 crossterm = "0.27.0"
 ratatui = "0.26.0"
 ratatui-explorer = "0.1.1"
-sqlx = {version="0.7.4", features=["runtime-tokio-native-tls", "sqlite"]}
+sqlx = { version = "0.7.4", features = ["runtime-tokio-native-tls", "sqlite"] }
 tokio = { version = "1.20.0", features = ["macros", "rt-multi-thread"] }
 tui-textarea = "0.4.0"
