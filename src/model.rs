@@ -4,16 +4,22 @@ use std::error::Error;
 
 use crate::config::*;
 use crate::database::*;
+use crate::message::Message;
+
+trait Update<NewMode> {
+    fn update(self, message: Message) -> (App<NewMode>, Option<Message>);
+}
 
 // Modes
 
-struct Home;
-struct EditQuery;
-struct BrowseSqliteDBFiles;
-struct ExploreResults;
-struct SaveResults;
-struct ExploreConnection;
-struct ConfigEditor;
+pub struct Home;
+pub struct EditQuery;
+pub struct BrowseSqliteDBFiles;
+pub struct ExploreResults;
+pub struct SaveResults;
+pub struct ExploreConnection;
+pub struct ConfigEditor;
+pub struct Quit;
 
 pub struct App<Mode> {
     mode: Mode,
@@ -114,6 +120,10 @@ impl<T> App<T> {
             results: Results::new(rows),
             queries: self.queries,
         }
+    }
+
+    pub fn quit(self) -> App<Quit> {
+        self.copy_app_with_new_mode(Quit)
     }
 }
 

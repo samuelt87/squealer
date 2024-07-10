@@ -1,5 +1,6 @@
 use crate::app::UiState;
-use crate::App;
+use crate::viewstate::ViewStateBox;
+use crate::{viewstate, App};
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::widgets::{Block, Borders, Cell, Row as TableRow, Table, TableState};
 use ratatui::Frame;
@@ -7,13 +8,6 @@ use ratatui_explorer::{FileExplorer, Theme};
 use sqlx::Column;
 use sqlx::Row;
 use std::error::Error;
-
-pub fn render_ui(f: &mut Frame, app: &mut App) -> Result<(), Box<dyn Error>> {
-    match app.ui_state {
-        UiState::Query => render_query(f, app),
-        UiState::Explorer => render_explorer(f, app),
-    }
-}
 
 fn render_explorer(f: &mut Frame, app: &mut App) -> Result<(), Box<dyn Error>> {
     match &app.explorer {

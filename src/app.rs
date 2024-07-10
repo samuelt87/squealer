@@ -20,6 +20,7 @@ pub struct App<'a> {
     pub ui_state: UiState,
     pub table_state: ratatui::widgets::TableState,
     pub explorer: Option<FileExplorer>,
+    pub selected: Option<usize>,
 }
 
 impl<'a> App<'a> {
@@ -45,6 +46,7 @@ impl<'a> App<'a> {
             ui_state,
             table_state: ratatui::widgets::TableState::default(),
             explorer: None,
+            selected: None,
         }
     }
 }

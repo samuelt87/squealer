@@ -12,10 +12,11 @@ license-file = "LICENSE"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+crossterm = { version = "0.27.0", features = ["event-stream"] }
 clap = { version = "4.5.4", features = ["derive"] }
-crossterm = "0.27.0"
 ratatui = "0.26.0"
 ratatui-explorer = "0.1.1"
 sqlx = { version = "0.7.4", features = ["runtime-tokio-native-tls", "sqlite"] }
 tokio = { version = "1.20.0", features = ["macros", "rt-multi-thread"] }
 tui-textarea = "0.4.0"
+futures = "0.3.30"

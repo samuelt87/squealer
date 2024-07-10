@@ -1,14 +1,35 @@
 use crate::database::connect_to_database_file;
+use crate::message::Message;
+use crate::model;
+use crate::model::{
+    BrowseSqliteDBFiles, ConfigEditor, EditQuery, ExploreConnection, ExploreResults, Home,
+    SaveResults,
+};
 use crate::App;
 use crate::{app::UiState, database::execute_query};
 use crossterm::event::{self, Event, KeyCode};
 use std::error::Error;
 
-pub async fn handle_event(app: &mut App<'static>) -> Result<bool, Box<dyn Error>> {
-    let event = event::read()?;
-    match app.ui_state {
-        UiState::Query => handle_query_event(app, event).await,
-        UiState::Explorer => handle_explorer_event(app, event).await,
+//pub async fn handle_event(app: &mut App<'static>) -> Result<bool, Box<dyn Error>> {
+//    let event = event::read()?;
+//    match app.ui_state {
+//        UiState::Query => handle_query_event(app, event).await,
+//        UiState::Explorer => handle_explorer_event(app, event).await,
+//    }
+//}
+
+struct EventHandler<Mode> {
+    mode: Mode,
+}
+
+trait EventHandlerTrait<Mode> {
+    fn handle_event(app: &mut App<'static>, model_app: model::App<Mode>) -> Message;
+}
+
+impl EventHandlerTrait<Home> for EventHandler<Home> {
+    fn handle_event(app: &mut App<'static>, model_app: model::App<Home>) -> Message {
+        let event = event::read();
+        match event {}
     }
 }
 
